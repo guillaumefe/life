@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de la Vie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(50, 10px);
+            grid-template-rows: repeat(50, 10px);
+            gap: 1px;
+            margin-bottom: 20px;
+        }
+        .cell {
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .alive {
+            background-color: #000;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game"></div>
+    <div id="controls">
+        <button id="startPauseButton">Démarrer</button>
+        <button id="clearButton">Effacer</button>
+    </div>
+
+    <script>
+        const rows = 50;
+        const cols = 50;
+        const gameElement = document.getElementById('game');
+        const startPauseButton = document.getElementById('startPauseButton');
+        const clearButton = document.getElementById('clearButton');
+        let grid = Array.from({ length: rows }, () => Array(cols).fill(0));
+        let running = false;
+        let intervalId;
+
+        // Créer la grille dans le DOM
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const cellElement = document.createElement('div');
+                cellElement.classList.add('cell');
+                cellElement.addEventListener('click', () => {
+                    grid[row][col] = grid[row][col] ? 0 : 1;
+                    cellElement.classList.toggle('alive');
+                });
+                gameElement.appendChild(cellElement);
+            }
+        }
+
+        // Placement automatique des motifs au démarrage
+        function placeInitialPattern() {
+            // Exemple de placement d'un oscillateur (ligne de 3 cellules)
+            grid[10][10] = 1;
+            grid[10][11] = 1;
+            grid[10][12] = 1;
+
+            // Exemple de placement d'un vaisseau léger
+            grid[20][20] = 1;
+            grid[21][21] = 1;
+            grid[22][19] = 1;
+            grid[22][20] = 1;
+            grid[22][21] = 1;
+
+            updateDOM();
+        }
+
+        // Mettre à jour la grille dans le DOM
+        function updateDOM() {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cellElement = getCellElement(row, col);
+                    if (grid[row][col] === 1) {
+                        cellElement.classList.add('alive');
+                    } else {
+                        cellElement.classList.remove('alive');
+                    }
+                }
+            }
+        }
+
+        // Obtenir la position d'une cellule dans la grille
+        function getCellElement(row, col) {
+            return gameElement.children[row * cols + col];
+        }
+
+        // Appliquer les règles du jeu de la vie
+        function updateGrid() {
+            let newGrid = grid.map(arr => [...arr]);
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const neighbors = countNeighbors(row, col);
+                    if (grid[row][col] === 1) {
+                        if (neighbors < 2 || neighbors > 3) {
+                            newGrid[row][col] = 0;
+                        }
+                    } else {
+                        if (neighbors === 3) {
+                            newGrid[row][col] = 1;
+                        }
+                    }
+                }
+            }
+
+            // Mettre à jour la grille et le DOM
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    if (grid[row][col] !== newGrid[row][col]) {
+                        grid[row][col] = newGrid[row][col];
+                        const cellElement = getCellElement(row, col);
+                        if (grid[row][col] === 1) {
+                            cellElement.classList.add('alive');
+                        } else {
+                            cellElement.classList.remove('alive');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Compter les voisins vivants autour d'une cellule
+        function countNeighbors(row, col) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (i === 0 && j === 0) continue;
+                    const x = (row + i + rows) % rows;
+                    const y = (col + j + cols) % cols;
+                    count += grid[x][y];
+                }
+            }
+            return count;
+        }
+
+        // Démarrer ou mettre en pause la simulation
+        function startPauseGame() {
+            if (!running) {
+                intervalId = setInterval(updateGrid, 100);
+                running = true;
+                startPauseButton.textContent = 'Pause';
+            } else {
+                clearInterval(intervalId);
+                running = false;
+                startPauseButton.textContent = 'Démarrer';
+            }
+        }
+
+        // Effacer la grille
+        function clearGrid() {
+            clearInterval(intervalId);
+            running = false;
+            startPauseButton.textContent = 'Démarrer';
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    grid[row][col] = 0;
+                    const cellElement = getCellElement(row, col);
+                    cellElement.classList.remove('alive');
+                }
+            }
+        }
+
+        // Ajouter des écouteurs d'événements aux boutons
+        startPauseButton.addEventListener('click', startPauseGame);
+        clearButton.addEventListener('click', clearGrid);
+
+        // Placer les motifs initiaux et mettre à jour la grille
+        placeInitialPattern();
+    </script>
+
+</body>
+</html>
