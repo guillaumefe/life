@@ -21,6 +21,7 @@
             grid-template-rows: repeat(50, 10px);
             gap: 1px;
             margin-bottom: 20px;
+            user-select: none; /* Empêche la sélection de texte lors du glissement */
         }
         .cell {
             width: 10px;
@@ -61,32 +62,73 @@
         let running = false;
         let intervalId;
 
+        let isMouseDown = false;
+        let toggleState = 1; // 1 pour activer, 0 pour désactiver
+
         // Créer la grille dans le DOM
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 const cellElement = document.createElement('div');
                 cellElement.classList.add('cell');
-                cellElement.addEventListener('click', () => {
-                    grid[row][col] = grid[row][col] ? 0 : 1;
-                    cellElement.classList.toggle('alive');
+                
+                // Événements pour cliquer et glisser
+                cellElement.addEventListener('mousedown', (e) => {
+                    e.preventDefault(); // Empêche la sélection de texte
+                    isMouseDown = true;
+                    toggleState = grid[row][col] ? 0 : 1;
+                    grid[row][col] = toggleState;
+                    cellElement.classList.toggle('alive', toggleState === 1);
                 });
+
+                cellElement.addEventListener('mouseover', () => {
+                    if (isMouseDown) {
+                        grid[row][col] = toggleState;
+                        cellElement.classList.toggle('alive', toggleState === 1);
+                    }
+                });
+
+                cellElement.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                });
+
                 gameElement.appendChild(cellElement);
             }
         }
 
+        // Empêche le comportement par défaut du navigateur lors du glissement en dehors de la grille
+        document.body.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
         // Placement automatique des motifs au démarrage
         function placeInitialPattern() {
             // Exemple de placement d'un oscillateur (ligne de 3 cellules)
-            grid[10][10] = 1;
-            grid[10][11] = 1;
-            grid[10][12] = 1;
+            const oscillator = [
+                [10, 10],
+                [10, 11],
+                [10, 12]
+            ];
+
+            oscillator.forEach(([row, col]) => {
+                if (row < rows && col < cols) {
+                    grid[row][col] = 1;
+                }
+            });
 
             // Exemple de placement d'un vaisseau léger
-            grid[20][20] = 1;
-            grid[21][21] = 1;
-            grid[22][19] = 1;
-            grid[22][20] = 1;
-            grid[22][21] = 1;
+            const glider = [
+                [20, 20],
+                [21, 21],
+                [22, 19],
+                [22, 20],
+                [22, 21]
+            ];
+
+            glider.forEach(([row, col]) => {
+                if (row < rows && col < cols) {
+                    grid[row][col] = 1;
+                }
+            });
 
             updateDOM();
         }
@@ -111,7 +153,7 @@
         }
 
         // Appliquer les règles du jeu de la vie
-        function updateGrid() {
+        function updateGridFunction() {
             let newGrid = grid.map(arr => [...arr]);
 
             for (let row = 0; row < rows; row++) {
@@ -162,7 +204,7 @@
         // Démarrer ou mettre en pause la simulation
         function startPauseGame() {
             if (!running) {
-                intervalId = setInterval(updateGrid, 100);
+                intervalId = setInterval(updateGridFunction, 100);
                 running = true;
                 startPauseButton.textContent = 'Pause';
             } else {
@@ -173,7 +215,7 @@
         }
 
         // Effacer la grille
-        function clearGrid() {
+        function clearGridFunction() {
             clearInterval(intervalId);
             running = false;
             startPauseButton.textContent = 'Démarrer';
@@ -188,7 +230,7 @@
 
         // Ajouter des écouteurs d'événements aux boutons
         startPauseButton.addEventListener('click', startPauseGame);
-        clearButton.addEventListener('click', clearGrid);
+        clearButton.addEventListener('click', clearGridFunction);
 
         // Placer les motifs initiaux et mettre à jour la grille
         placeInitialPattern();
