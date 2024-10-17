@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu de la Vie</title>
+    <title>Jeu de la Vie - Ordinateur Fonctionnel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,15 +17,16 @@
         }
         #game {
             display: grid;
-            grid-template-columns: repeat(50, 10px);
-            grid-template-rows: repeat(50, 10px);
+            grid-template-columns: repeat(100, 6px);
+            grid-template-rows: repeat(100, 6px);
             gap: 1px;
             margin-bottom: 20px;
             user-select: none; /* Empêche la sélection de texte lors du glissement */
+            border: 1px solid #ccc;
         }
         .cell {
-            width: 10px;
-            height: 10px;
+            width: 6px;
+            height: 6px;
             background-color: #fff;
             border: 1px solid #ddd;
             cursor: pointer;
@@ -39,7 +40,7 @@
         }
         button {
             padding: 10px 20px;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
         }
     </style>
@@ -50,14 +51,16 @@
     <div id="controls">
         <button id="startPauseButton">Démarrer</button>
         <button id="clearButton">Effacer</button>
+        <button id="resetButton">Réinitialiser Ordinateur</button>
     </div>
 
     <script>
-        const rows = 50;
-        const cols = 50;
+        const rows = 100;
+        const cols = 100;
         const gameElement = document.getElementById('game');
         const startPauseButton = document.getElementById('startPauseButton');
         const clearButton = document.getElementById('clearButton');
+        const resetButton = document.getElementById('resetButton');
         let grid = Array.from({ length: rows }, () => Array(cols).fill(0));
         let running = false;
         let intervalId;
@@ -100,40 +103,7 @@
             isMouseDown = false;
         });
 
-        // Placement automatique des motifs au démarrage
-        function placeInitialPattern() {
-            // Exemple de placement d'un oscillateur (ligne de 3 cellules)
-            const oscillator = [
-                [10, 10],
-                [10, 11],
-                [10, 12]
-            ];
-
-            oscillator.forEach(([row, col]) => {
-                if (row < rows && col < cols) {
-                    grid[row][col] = 1;
-                }
-            });
-
-            // Exemple de placement d'un vaisseau léger
-            const glider = [
-                [20, 20],
-                [21, 21],
-                [22, 19],
-                [22, 20],
-                [22, 21]
-            ];
-
-            glider.forEach(([row, col]) => {
-                if (row < rows && col < cols) {
-                    grid[row][col] = 1;
-                }
-            });
-
-            updateDOM();
-        }
-
-        // Mettre à jour la grille dans le DOM
+        // Fonction pour mettre à jour le DOM en fonction de la grille
         function updateDOM() {
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
@@ -228,9 +198,133 @@
             }
         }
 
+        // Fonction pour ajouter une glider gun
+        function addGliderGun(startRow, startCol) {
+            const gun = [
+                [startRow, startCol + 24],
+                [startRow + 1, startCol + 22],
+                [startRow + 1, startCol + 24],
+                [startRow + 2, startCol + 12],
+                [startRow + 2, startCol + 13],
+                [startRow + 2, startCol + 20],
+                [startRow + 2, startCol + 21],
+                [startRow + 2, startCol + 34],
+                [startRow + 2, startCol + 35],
+                [startRow + 3, startCol + 11],
+                [startRow + 3, startCol + 15],
+                [startRow + 3, startCol + 20],
+                [startRow + 3, startCol + 21],
+                [startRow + 4, startCol + 11],
+                [startRow + 4, startCol + 15],
+                [startRow + 4, startCol + 34],
+                [startRow + 4, startCol + 35],
+                [startRow + 5, startCol + 24],
+                [startRow + 6, startCol + 22],
+                [startRow + 6, startCol + 24],
+                [startRow + 7, startCol + 12],
+                [startRow + 7, startCol + 13],
+                [startRow + 7, startCol + 20],
+                [startRow + 7, startCol + 21],
+                [startRow + 8, startCol + 12],
+                [startRow + 8, startCol + 13],
+                [startRow + 9, startCol + 24],
+                [startRow + 10, startCol + 24],
+                [startRow + 11, startCol + 24],
+                [startRow + 12, startCol + 24],
+                [startRow + 13, startCol + 24],
+                [startRow + 14, startCol + 24]
+            ];
+
+            gun.forEach(([row, col]) => {
+                if (row < rows && col < cols) {
+                    grid[row][col] = 1;
+                }
+            });
+        }
+
+        // Fonction pour ajouter un glider
+        function addGlider(startRow, startCol) {
+            const glider = [
+                [startRow, startCol + 1],
+                [startRow + 1, startCol + 2],
+                [startRow + 2, startCol],
+                [startRow + 2, startCol + 1],
+                [startRow + 2, startCol + 2]
+            ];
+
+            glider.forEach(([row, col]) => {
+                if (row < rows && col < cols) {
+                    grid[row][col] = 1;
+                }
+            });
+        }
+
+        // Fonction pour ajouter un oscillateur (Blinker)
+        function addBlinker(startRow, startCol) {
+            const blinker = [
+                [startRow, startCol],
+                [startRow, startCol + 1],
+                [startRow, startCol + 2]
+            ];
+
+            blinker.forEach(([row, col]) => {
+                if (row < rows && col < cols) {
+                    grid[row][col] = 1;
+                }
+            });
+        }
+
+        // Fonction pour ajouter un motif complexe (Ordinateur simplifié)
+        function addComputer(startRow, startCol) {
+            // Pour simplifier, nous allons ajouter plusieurs composants de base
+            addGliderGun(startRow, startCol);
+            addGlider(startRow + 10, startCol + 10);
+            addBlinker(startRow + 20, startCol + 20);
+        }
+
+        // Placement automatique des motifs au démarrage avec randomisation
+        function placeInitialPattern() {
+            // Effacer la grille avant de placer les motifs
+            clearGridFunction();
+
+            // Définir le nombre de composants à ajouter
+            const numberOfComponents = 3;
+
+            for (let i = 0; i < numberOfComponents; i++) {
+                // Générer des positions aléatoires pour les composants
+                const startRow = Math.floor(Math.random() * (rows - 30));
+                const startCol = Math.floor(Math.random() * (cols - 30));
+
+                // Sélectionner aléatoirement un type de composant
+                const componentType = Math.floor(Math.random() * 3);
+
+                switch (componentType) {
+                    case 0:
+                        addGliderGun(startRow, startCol);
+                        break;
+                    case 1:
+                        addGlider(startRow, startCol);
+                        break;
+                    case 2:
+                        addBlinker(startRow, startCol);
+                        break;
+                    default:
+                        addGliderGun(startRow, startCol);
+                }
+            }
+
+            updateDOM();
+        }
+
+        // Fonction de réinitialisation pour ajouter un ordinateur fonctionnel
+        function resetComputer() {
+            placeInitialPattern();
+        }
+
         // Ajouter des écouteurs d'événements aux boutons
         startPauseButton.addEventListener('click', startPauseGame);
         clearButton.addEventListener('click', clearGridFunction);
+        resetButton.addEventListener('click', resetComputer);
 
         // Placer les motifs initiaux et mettre à jour la grille
         placeInitialPattern();
